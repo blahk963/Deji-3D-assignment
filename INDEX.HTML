@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D CSS Animations: Ball, Car and Moon</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #000; }
+
+  /* =====================================================
+     TABS (pure CSS, no JavaScript): radio buttons switch views
+     ===================================================== */
+  .tab-radio { position: absolute; opacity: 0; pointer-events: none; }
+
+  .tabs {
+    position: fixed;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex; gap: 4px;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.45);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+  }
+  .tabs label {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font: 600 13px/1 system-ui, sans-serif;
+    color: #cfd6ee;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #t1:checked ~ .tabs label[for="t1"],
+  #t2:checked ~ .tabs label[for="t2"],
+  #t3:checked ~ .tabs label[for="t3"] { background: #fff; color: #111; }
+
+  .view { position: absolute; inset: 0; display: none; overflow: hidden; }
+  #t1:checked ~ #v1,
+  #t2:checked ~ #v2,
+  #t3:checked ~ #v3 { display: block; }
+
+
+  /* =====================================================
+     1) BOUNCING BALL  (classes start with b-)
+     ===================================================== */
+  #v1 { background: radial-gradient(circle at 50% 30%, #2b3a67 0%, #121626 70%); }
+
+  .b-scene {
+    width: 100%; height: 100%;
+    perspective: 900px;
+    perspective-origin: 50% 35%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .b-world {
+    position: relative;
+    width: 0; height: 0;
+    transform-style: preserve-3d;
+    transform: translateY(80px) rotateX(-22deg);
+  }
+  .b-floor {
+    position: absolute;
+    width: 700px; height: 700px;
+    left: -350px; top: -350px;
+    transform: rotateX(90deg);
+    background:
+      linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px) 0 0 / 50px 50px,
+      linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px) 0 0 / 50px 50px,
+      #1b2347;
+    border-radius: 50%;
+    -webkit-mask-image: radial-gradient(circle, #000 40%, transparent 72%);
+            mask-image: radial-gradient(circle, #000 40%, transparent 72%);
+  }
+  .b-path {
+    position: absolute;
+    transform-style: preserve-3d;
+    animation: b-travel 4.8s ease-in-out infinite alternate;
+  }
+  .b-shadow {
+    position: absolute;
+    width: 80px; height: 80px;
+    left: -40px; top: -40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,0,0,.75) 0%, rgba(0,0,0,0) 70%);
+    transform: rotateX(90deg);
+    animation: b-shadow 1.2s infinite;
+  }
+  .b-bounce {
+    position: absolute;
+    width: 80px; height: 80px;
+    left: -40px; top: -80px;
+    transform-style: preserve-3d;
+    animation: b-bounce 1.2s infinite;
+  }
+  .b-ball {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    transform-origin: 50% 100%;
+    background:
+      radial-gradient(circle at 32% 28%, #fff 0, rgba(255,255,255,0) 18%),
+      radial-gradient(circle at 35% 30%, #ff8a8f 0%, #e63946 45%, #6e0d1a 100%);
+    box-shadow: inset -10px -14px 24px rgba(0,0,0,.45);
+    animation: b-squash 1.2s infinite;
+  }
+  @keyframes b-travel {
+    from { transform: translate3d(-170px, 0, -170px); }
+    to   { transform: translate3d( 170px, 0,  170px); }
+  }
+  @keyframes b-bounce {
+    0%   { transform: translateY(0);      animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    50%  { transform: translateY(-230px); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes b-squash {
+    0%, 100% { transform: scale(1.25, .72); }
+    12%, 88% { transform: scale(1, 1); }
+  }
+  @keyframes b-shadow {
+    0%, 100% { transform: rotateX(90deg) scale(1.1); opacity: .9; }
+    50%      { transform: rotateX(90deg) scale(.5);  opacity: .3; }
+  }
+
+
+  /* =====================================================
+     2) MOVING CAR  (classes start with c-)
+     ===================================================== */
+  #v2 { background: linear-gradient(#0b1d3a 0%, #3a4a7a 55%, #f4a261 100%); }
+
+  .c-scene {
+    width: 100%; height: 100%;
+    perspective: 1100px;
+    perspective-origin: 50% 30%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .c-world {
+    position: relative;
+    width: 0; height: 0;
+    transform-style: preserve-3d;
+    transform: translateY(70px) rotateX(-18deg) rotateY(-35deg);
+    animation: c-orbit 9s ease-in-out infinite alternate;
+  }
+  @keyframes c-orbit {
+    from { transform: translateY(70px) rotateX(-18deg) rotateY(-55deg); }
+    to   { transform: translateY(70px) rotateX(-18deg) rotateY(-15deg); }
+  }
+
+  /* Ground and road */
+  .c-grass, .c-road {
+    position: absolute;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+  }
+  .c-grass {
+    width: 3000px; height: 1600px;
+    left: -1500px; top: -800px;
+    background: #1f3b2c;
+    transform: translateY(2px) rotateX(90deg);
+  }
+  .c-road {
+    width: 3000px; height: 320px;
+    left: -1500px; top: -160px;
+    background:
+      linear-gradient(#e8e8e8, #e8e8e8) 0 10px / 100% 6px no-repeat,
+      linear-gradient(#e8e8e8, #e8e8e8) 0 calc(100% - 16px) / 100% 6px no-repeat,
+      #2b2b30;
+    transform: rotateX(90deg);
+  }
+  .c-dashes {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, #f5f5f5 50%, transparent 50%) 0 50% / 120px 8px repeat-x;
+    animation: c-scroll 0.5s linear infinite;   /* 120px per 0.5s = 240px/s */
+  }
+  @keyframes c-scroll {
+    from { background-position: 0 50%; }
+    to   { background-position: -120px 50%; }
+  }
+
+  /* Car */
+  .c-car { position: absolute; transform-style: preserve-3d; }
+
+  .c-shadow {
+    position: absolute;
+    width: 260px; height: 130px;
+    left: -130px; top: -65px;
+    background: radial-gradient(ellipse, rgba(0,0,0,.6) 0%, rgba(0,0,0,0) 70%);
+    transform: translateY(-1px) rotateX(90deg);
+  }
+  .c-bob {
+    position: absolute;
+    transform-style: preserve-3d;
+    animation: c-bob 0.3s ease-in-out infinite alternate;
+  }
+  @keyframes c-bob {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-2px); }
+  }
+
+  /* Generic 3D box: --w length, --h height, --d depth */
+  .c-box {
+    position: absolute;
+    width: var(--w); height: var(--h);
+    left: calc(var(--w) / -2);
+    top: calc(var(--h) / -2);
+    transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
+    transform-style: preserve-3d;
+  }
+  .c-box > div { position: absolute; }
+  .c-box .front, .c-box .back { width: var(--w); height: var(--h); left: 0; top: 0; }
+  .c-box .front { transform: translateZ(calc(var(--d) / 2)); }
+  .c-box .back  { transform: rotateY(180deg) translateZ(calc(var(--d) / 2)); }
+  .c-box .left, .c-box .right {
+    width: var(--d); height: var(--h);
+    left: calc((var(--w) - var(--d)) / 2); top: 0;
+  }
+  .c-box .right { transform: rotateY(90deg) translateZ(calc(var(--w) / 2)); }
+  .c-box .left  { transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); }
+  .c-box .top, .c-box .bottom {
+    width: var(--w); height: var(--d);
+    left: 0; top: calc((var(--h) - var(--d)) / 2);
+  }
+  .c-box .top    { transform: rotateX(90deg) translateZ(calc(var(--h) / 2)); }
+  .c-box .bottom { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); }
+
+  /* Body (lower part) */
+  .c-body { --w: 230px; --h: 38px; --d: 100px; --y: -35px; }
+  .c-body .front, .c-body .back { background: #e63946; }
+  .c-body .right  { background: #c1121f; }
+  .c-body .left   { background: #9d0208; }
+  .c-body .top    { background: #ff5a66; }
+  .c-body .bottom { background: #400; }
+
+  .c-body .front::before, .c-body .back::before {   /* door line */
+    content: ""; position: absolute;
+    left: 48%; top: 5px; bottom: 5px; width: 2px;
+    background: rgba(0,0,0,.28);
+  }
+  .c-body .right::before, .c-body .right::after {   /* headlights */
+    content: ""; position: absolute; top: 8px;
+    width: 18px; height: 11px; border-radius: 3px;
+    background: #fff3b0; box-shadow: 0 0 16px 4px rgba(255,235,120,.8);
+  }
+  .c-body .left::before, .c-body .left::after {     /* tail lights */
+    content: ""; position: absolute; top: 8px;
+    width: 18px; height: 10px; border-radius: 3px;
+    background: #ff1f1f; box-shadow: 0 0 12px 3px rgba(255,30,30,.7);
+  }
+  .c-body .right::before, .c-body .left::before { left: 8px; }
+  .c-body .right::after,  .c-body .left::after  { right: 8px; }
+
+  /* Cabin (upper part) */
+  .c-cabin { --w: 120px; --h: 32px; --d: 88px; --x: -22px; --y: -70px; }
+  .c-cabin .front, .c-cabin .back, .c-cabin .left, .c-cabin .right {
+    background: linear-gradient(135deg, rgba(190,235,255,.9), rgba(80,140,200,.9));
+    border: 4px solid #9d0208;
+  }
+  .c-cabin .top    { background: #ff5a66; }
+  .c-cabin .bottom { background: #400; }
+
+  /* Wheels */
+  .c-wheel {
+    position: absolute;
+    width: 44px; height: 44px;
+    left: -22px; top: -22px;
+    transform: translate3d(var(--x), -22px, var(--z));
+  }
+  .c-tyre {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 8px solid #111;
+    background: repeating-conic-gradient(#d6d6d6 0 20deg, #777 0 40deg);
+    position: relative;
+    animation: c-spin 0.575s linear infinite;   /* matches road speed */
+  }
+  .c-tyre::after {
+    content: ""; position: absolute;
+    inset: 7px; border-radius: 50%;
+    background: #333;
+  }
+  @keyframes c-spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 520px) { .c-world { scale: .7; } }
+
+
+  /* =====================================================
+     3) MOVING MOON  (classes start with m-)
+     ===================================================== */
+  #v3 {
+    --size: clamp(120px, 28vmin, 210px);
+    background: linear-gradient(#02030a 0%, #0a1030 55%, #1b2a5c 85%, #3a3f78 100%);
+  }
+
+  /* Stars: two layers */
+  .m-stars, .m-stars2 { position: absolute; inset: 0; background-repeat: repeat; }
+  .m-stars {
+    background-image:
+      radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 90px 120px, #fff, transparent),
+      radial-gradient(1px 1px at 160px 60px, #fff, transparent),
+      radial-gradient(2px 2px at 220px 180px, #cfe0ff, transparent);
+    background-size: 250px 250px;
+    animation: m-twinkle 4s ease-in-out infinite alternate, m-drift 120s linear infinite;
+  }
+  .m-stars2 {
+    background-image:
+      radial-gradient(1px 1px at 60px 90px, #fff, transparent),
+      radial-gradient(1px 1px at 140px 20px, #ffe9c4, transparent),
+      radial-gradient(1.5px 1.5px at 200px 150px, #fff, transparent);
+    background-size: 180px 180px;
+    animation: m-twinkle 6s ease-in-out infinite alternate-reverse, m-drift 200s linear infinite;
+  }
+  @keyframes m-twinkle { from { opacity: .45; } to { opacity: 1; } }
+  @keyframes m-drift   { to { background-position: -500px 0; } }
+
+  /* Camera */
+  .m-scene {
+    position: absolute; inset: 0;
+    perspective: 1000px;
+    perspective-origin: 50% 50%;
+    transform-style: preserve-3d;
+  }
+
+  /* Point A and Point B markers */
+  .m-marker {
+    position: absolute;
+    top: calc(50% + 19.5vh);
+    width: 14px; height: 14px;
+    margin: -7px 0 0 -7px;
+    border: 2px solid rgba(255,255,255,.7);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(255,255,255,.5);
+  }
+  .m-marker span {
+    position: absolute;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    font: 600 12px/1 system-ui, sans-serif;
+    letter-spacing: .1em;
+    color: rgba(255,255,255,.75);
+    white-space: nowrap;
+  }
+  .m-a { left: calc(50% - 39vw); }
+  .m-b { left: calc(50% + 39vw); }
+
+  /* Movement: three nested wrappers, each with its own animation */
+  .m-travel-x, .m-travel-y, .m-travel-z {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 0; height: 0;
+    transform-style: preserve-3d;
+  }
+  .m-travel-x { animation: m-moveX 14s ease-in-out infinite alternate; }
+  .m-travel-y { animation: m-moveY 14s infinite alternate; }
+  .m-travel-z { animation: m-moveZ 14s infinite alternate; }
+
+  @keyframes m-moveX {
+    from { transform: translateX(-36vw); }
+    to   { transform: translateX(36vw); }
+  }
+  @keyframes m-moveY {
+    0%   { transform: translateY(18vh);  animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    50%  { transform: translateY(-16vh); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    100% { transform: translateY(18vh); }
+  }
+  @keyframes m-moveZ {
+    0%   { transform: translateZ(80px);   animation-timing-function: ease-in-out; }
+    50%  { transform: translateZ(-220px); animation-timing-function: ease-in-out; }
+    100% { transform: translateZ(80px); }
+  }
+
+  /* Moon */
+  .m-moon {
+    position: absolute;
+    width: var(--size); height: var(--size);
+    left: calc(var(--size) / -2);
+    top: calc(var(--size) / -2);
+    border-radius: 50%;
+    overflow: hidden;
+    background: radial-gradient(circle at 35% 30%, #fffef5 0%, #e8e3d0 40%, #a9a493 100%);
+    box-shadow: 0 0 60px 10px rgba(255,245,210,.35), 0 0 160px 40px rgba(180,200,255,.18);
+  }
+  .m-surface {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 18% 32%, rgba(70,70,80,.35) 0 7%, transparent 8%),
+      radial-gradient(circle at 42% 60%, rgba(70,70,80,.30) 0 10%, transparent 11%),
+      radial-gradient(circle at 66% 28%, rgba(70,70,80,.32) 0 6%, transparent 7%),
+      radial-gradient(circle at 82% 66%, rgba(70,70,80,.30) 0 8%, transparent 9%),
+      radial-gradient(circle at 30% 82%, rgba(70,70,80,.28) 0 5%, transparent 6%),
+      radial-gradient(ellipse at 52% 40%, rgba(90,90,105,.35), transparent 38%),
+      radial-gradient(ellipse at 15% 70%, rgba(90,90,105,.25), transparent 30%);
+    background-size: 150% 100%;
+    background-repeat: repeat-x;
+    animation: m-rotate 40s linear infinite;
+  }
+  @keyframes m-rotate { to { background-position: -150% 0; } }
+
+  .m-shade {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, transparent 0 30%, rgba(0,0,0,.55) 100%);
+  }
+  .m-phase {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    box-shadow: inset 60px 0 60px 10px rgba(4,6,22,.92);
+    animation: m-phase 14s ease-in-out infinite alternate;
+  }
+  @keyframes m-phase {
+    from { box-shadow: inset 70px 0 60px 12px rgba(4,6,22,.92); }
+    to   { box-shadow: inset -70px 0 60px 12px rgba(4,6,22,.92); }
+  }
+
+  .m-hills {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 22vh;
+    background: #05060f;
+    clip-path: polygon(0 60%, 10% 40%, 22% 55%, 35% 30%, 50% 52%, 63% 28%, 78% 50%, 90% 34%, 100% 52%, 100% 100%, 0 100%);
+  }
+</style>
+</head>
+<body>
+
+  <input class="tab-radio" type="radio" name="tab" id="t1" checked>
+  <input class="tab-radio" type="radio" name="tab" id="t2">
+  <input class="tab-radio" type="radio" name="tab" id="t3">
+
+  <nav class="tabs">
+    <label for="t1">Ball</label>
+    <label for="t2">Car</label>
+    <label for="t3">Moon</label>
+  </nav>
+
+  <!-- 1) BOUNCING BALL -->
+  <section class="view" id="v1">
+    <div class="b-scene">
+      <div class="b-world">
+        <div class="b-floor"></div>
+        <div class="b-path">
+          <div class="b-shadow"></div>
+          <div class="b-bounce"><div class="b-ball"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2) MOVING CAR -->
+  <section class="view" id="v2">
+    <div class="c-scene">
+      <div class="c-world">
+        <div class="c-grass"></div>
+        <div class="c-road"><div class="c-dashes"></div></div>
+
+        <div class="c-car">
+          <div class="c-shadow"></div>
+
+          <div class="c-bob">
+            <div class="c-box c-body">
+              <div class="front"></div><div class="back"></div>
+              <div class="left"></div><div class="right"></div>
+              <div class="top"></div><div class="bottom"></div>
+            </div>
+            <div class="c-box c-cabin">
+              <div class="front"></div><div class="back"></div>
+              <div class="left"></div><div class="right"></div>
+              <div class="top"></div><div class="bottom"></div>
+            </div>
+          </div>
+
+          <div class="c-wheel" style="--x: 72px;  --z: 51px;"><div class="c-tyre"></div></div>
+          <div class="c-wheel" style="--x: -72px; --z: 51px;"><div class="c-tyre"></div></div>
+          <div class="c-wheel" style="--x: 72px;  --z: -51px;"><div class="c-tyre"></div></div>
+          <div class="c-wheel" style="--x: -72px; --z: -51px;"><div class="c-tyre"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3) MOVING MOON -->
+  <section class="view" id="v3">
+    <div class="m-stars"></div>
+    <div class="m-stars2"></div>
+
+    <div class="m-scene">
+      <div class="m-marker m-a"><span>POINT A</span></div>
+      <div class="m-marker m-b"><span>POINT B</span></div>
+
+      <div class="m-travel-x">
+        <div class="m-travel-y">
+          <div class="m-travel-z">
+            <div class="m-moon">
+              <div class="m-surface"></div>
+              <div class="m-shade"></div>
+              <div class="m-phase"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="m-hills"></div>
+  </section>
+
+</body>
+</html>
